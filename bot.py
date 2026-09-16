@@ -24,10 +24,14 @@ from telegram.ext import (
 TOKEN = os.getenv("BOT_TOKEN")
 DATABASE_URL = os.getenv("DATABASE_URL")
 
-# 2 TA ADMIN
+# =========================================================
+# 3 TA ADMIN
+# =========================================================
+
 ADMIN_IDS = [
     7267416938,
     1058849364,
+    6820475808,
 ]
 
 MIN_VIDEO_REWARD = 5_000
@@ -166,8 +170,9 @@ async def send_to_admins(
     reply_markup=None
 ):
     """
-    Barcha adminlarga text xabar yuboradi.
+    Barcha 3 ta adminlarga text xabar yuboradi.
     """
+
     for admin_id in ADMIN_IDS:
         try:
             await context.bot.send_message(
@@ -175,6 +180,7 @@ async def send_to_admins(
                 text=text,
                 reply_markup=reply_markup,
             )
+
         except Exception as e:
             logger.error(
                 f"Admin {admin_id} ga xabar yuborilmadi: {e}"
@@ -189,22 +195,26 @@ async def send_media_to_admins(
     is_video=True
 ):
     """
-    Barcha adminlarga video/document yuboradi.
-    Kamida bitta admin qabul qilsa True qaytaradi.
+    Barcha 3 ta adminlarga video/document yuboradi.
     """
 
     sent_to_any_admin = False
 
     for admin_id in ADMIN_IDS:
+
         try:
+
             if is_video:
+
                 await context.bot.send_video(
                     chat_id=admin_id,
                     video=file_id,
                     caption=caption,
                     reply_markup=reply_markup,
                 )
+
             else:
+
                 await context.bot.send_document(
                     chat_id=admin_id,
                     document=file_id,
@@ -215,6 +225,7 @@ async def send_media_to_admins(
             sent_to_any_admin = True
 
         except Exception as e:
+
             logger.error(
                 f"Admin {admin_id} ga media yuborilmadi: {e}"
             )
@@ -227,31 +238,37 @@ async def send_media_to_admins(
 # =========================================================
 
 def main_menu():
+
     keyboard = [
+
         [
             InlineKeyboardButton(
                 "📝 Oddiy murojaat",
                 callback_data="appeal"
             )
         ],
+
         [
             InlineKeyboardButton(
                 "🎥 Video sotaman",
                 callback_data="sell_video"
             )
         ],
+
         [
             InlineKeyboardButton(
                 "💰 Balansim",
                 callback_data="balance"
             )
         ],
+
         [
             InlineKeyboardButton(
                 "💳 Pul yechish",
                 callback_data="withdraw"
             )
         ],
+
     ]
 
     return InlineKeyboardMarkup(keyboard)
@@ -262,19 +279,23 @@ def main_menu():
 # =========================================================
 
 def admin_menu():
+
     keyboard = [
+
         [
             InlineKeyboardButton(
                 "👥 Foydalanuvchilar",
                 callback_data="admin_users"
             )
         ],
+
         [
             InlineKeyboardButton(
                 "💳 Pul yechishlar",
                 callback_data="admin_withdrawals"
             )
         ],
+
     ]
 
     return InlineKeyboardMarkup(keyboard)
@@ -285,29 +306,35 @@ def admin_menu():
 # =========================================================
 
 def video_reward_menu(submission_id):
+
     keyboard = [
+
         [
             InlineKeyboardButton(
                 "5 000 so'm",
                 callback_data=f"reward:{submission_id}:5000"
             ),
+
             InlineKeyboardButton(
                 "10 000 so'm",
                 callback_data=f"reward:{submission_id}:10000"
             ),
         ],
+
         [
             InlineKeyboardButton(
                 "15 000 so'm",
                 callback_data=f"reward:{submission_id}:15000"
             ),
         ],
+
         [
             InlineKeyboardButton(
                 "❌ Rad etish",
                 callback_data=f"reject_video:{submission_id}"
             )
         ],
+
     ]
 
     return InlineKeyboardMarkup(keyboard)
@@ -318,17 +345,21 @@ def video_reward_menu(submission_id):
 # =========================================================
 
 def withdrawal_menu(withdrawal_id):
+
     keyboard = [
+
         [
             InlineKeyboardButton(
                 "✅ To'landi",
                 callback_data=f"withdraw_paid:{withdrawal_id}"
             ),
+
             InlineKeyboardButton(
                 "❌ Rad etish",
                 callback_data=f"withdraw_reject:{withdrawal_id}"
             ),
         ]
+
     ]
 
     return InlineKeyboardMarkup(keyboard)
@@ -339,19 +370,23 @@ def withdrawal_menu(withdrawal_id):
 # =========================================================
 
 def appeal_menu(submission_id):
+
     keyboard = [
+
         [
             InlineKeyboardButton(
                 "💬 Javob berish",
                 callback_data=f"appeal_reply:{submission_id}"
             )
         ],
+
         [
             InlineKeyboardButton(
                 "❌ Yopish",
                 callback_data=f"appeal_close:{submission_id}"
             )
         ],
+
     ]
 
     return InlineKeyboardMarkup(keyboard)
@@ -365,14 +400,17 @@ async def start_command(
     update: Update,
     context: ContextTypes.DEFAULT_TYPE
 ):
+
     user = update.effective_user
 
     add_or_update_user(user)
 
     await update.message.reply_text(
+
         "👋 Assalomu alaykum!\n\n"
         "🌐 Navoiyliklar.uz axborot agentligi\n\n"
         "Kerakli bo'limni tanlang:",
+
         reply_markup=main_menu()
     )
 
@@ -385,17 +423,22 @@ async def admin_command(
     update: Update,
     context: ContextTypes.DEFAULT_TYPE
 ):
+
     user_id = update.effective_user.id
 
     if not is_admin(user_id):
+
         await update.message.reply_text(
             "❌ Sizda admin huquqi yo'q."
         )
+
         return
 
     await update.message.reply_text(
+
         "🔐 Admin panel\n\n"
         "Kerakli bo'limni tanlang:",
+
         reply_markup=admin_menu()
     )
 
@@ -408,11 +451,15 @@ async def button_handler(
     update: Update,
     context: ContextTypes.DEFAULT_TYPE
 ):
+
     query = update.callback_query
+
     await query.answer()
 
     user = query.from_user
+
     user_id = user.id
+
     data = query.data
 
     add_or_update_user(user)
@@ -424,6 +471,7 @@ async def button_handler(
     if data == "balance":
 
         conn = get_db()
+
         cur = conn.cursor()
 
         cur.execute("""
@@ -435,19 +483,26 @@ async def button_handler(
         row = cur.fetchone()
 
         cur.close()
+
         conn.close()
 
         if not row:
+
             balance = 0
             reserved = 0
+
         else:
+
             balance = row["balance"] or 0
             reserved = row["reserved_balance"] or 0
 
         await query.message.reply_text(
+
             "💰 Balansingiz\n\n"
+
             f"💵 Asosiy balans: {balance:,} so'm\n"
             f"🔒 Kutayotgan mablag': {reserved:,} so'm\n\n"
+
             f"💰 Jami: {balance + reserved:,} so'm"
         )
 
@@ -462,6 +517,7 @@ async def button_handler(
         context.user_data["mode"] = "appeal"
 
         await query.message.reply_text(
+
             "📝 Oddiy murojaat\n\n"
             "Murojaatingizni yozib yuboring."
         )
@@ -477,8 +533,11 @@ async def button_handler(
         context.user_data["mode"] = "video"
 
         await query.message.reply_text(
+
             "🎥 Video sotish\n\n"
+
             "Videoni yuboring.\n\n"
+
             "Admin video ko'rib chiqib, "
             "5 000 - 15 000 so'm oralig'ida "
             "mukofot belgilaydi."
@@ -493,6 +552,7 @@ async def button_handler(
     if data == "withdraw":
 
         conn = get_db()
+
         cur = conn.cursor()
 
         cur.execute("""
@@ -504,22 +564,29 @@ async def button_handler(
         row = cur.fetchone()
 
         cur.close()
+
         conn.close()
 
         balance = row["balance"] if row else 0
 
         if balance < MIN_WITHDRAW:
+
             await query.message.reply_text(
+
                 "❌ Pul yechish uchun balansingizda "
                 f"kamida {MIN_WITHDRAW:,} so'm bo'lishi kerak."
             )
+
             return
 
         context.user_data["mode"] = "withdraw_amount"
 
         await query.message.reply_text(
+
             "💳 Pul yechish\n\n"
+
             f"Minimal summa: {MIN_WITHDRAW:,} so'm\n\n"
+
             "Qancha pul yechmoqchi ekaningizni yozing:"
         )
 
@@ -530,6 +597,7 @@ async def button_handler(
     # =====================================================
 
     if not is_admin(user_id):
+
         return
 
     # =====================================================
@@ -539,6 +607,7 @@ async def button_handler(
     if data == "admin_users":
 
         conn = get_db()
+
         cur = conn.cursor()
 
         cur.execute("""
@@ -549,11 +618,13 @@ async def button_handler(
         row = cur.fetchone()
 
         cur.close()
+
         conn.close()
 
         count = row["count"]
 
         await query.message.reply_text(
+
             "👥 Foydalanuvchilar\n\n"
             f"Jami foydalanuvchilar: {count}"
         )
@@ -582,24 +653,31 @@ async def button_handler(
         parts = data.split(":")
 
         submission_id = int(parts[1])
+
         reward = int(parts[2])
 
         if reward < MIN_VIDEO_REWARD:
+
             await query.message.reply_text(
                 "❌ Mukofot juda kam."
             )
+
             return
 
         if reward > MAX_VIDEO_REWARD:
+
             await query.message.reply_text(
                 "❌ Mukofot juda katta."
             )
+
             return
 
         conn = get_db()
+
         cur = conn.cursor()
 
         try:
+
             cur.execute(
                 """
                 SELECT *
@@ -613,17 +691,23 @@ async def button_handler(
             submission = cur.fetchone()
 
             if not submission:
+
                 await query.message.reply_text(
-                    "❌ Murojaat topilmadi."
+                    "❌ Video topilmadi."
                 )
+
                 conn.rollback()
+
                 return
 
             if submission["status"] != "pending":
+
                 await query.message.reply_text(
                     "⚠️ Bu video allaqachon ko'rib chiqilgan."
                 )
+
                 conn.rollback()
+
                 return
 
             cur.execute(
@@ -658,25 +742,35 @@ async def button_handler(
             )
 
             await query.message.reply_text(
-                f"✅ Video tasdiqlandi.\n"
+
+                "✅ Video tasdiqlandi.\n"
+
                 f"💰 Mukofot: {reward:,} so'm"
             )
 
             try:
+
                 await context.bot.send_message(
+
                     chat_id=submission["user_id"],
+
                     text=(
+
                         "🎉 Videongiz tasdiqlandi!\n\n"
+
                         f"💰 Sizga {reward:,} so'm "
                         "qo'shildi."
                     )
                 )
+
             except Exception as e:
+
                 logger.error(
                     f"Userga reward xabari yuborilmadi: {e}"
                 )
 
         except Exception as e:
+
             conn.rollback()
 
             logger.exception(
@@ -688,7 +782,9 @@ async def button_handler(
             )
 
         finally:
+
             cur.close()
+
             conn.close()
 
         return
@@ -704,9 +800,11 @@ async def button_handler(
         )
 
         conn = get_db()
+
         cur = conn.cursor()
 
         try:
+
             cur.execute(
                 """
                 SELECT *
@@ -720,17 +818,23 @@ async def button_handler(
             submission = cur.fetchone()
 
             if not submission:
+
                 await query.message.reply_text(
                     "❌ Video topilmadi."
                 )
+
                 conn.rollback()
+
                 return
 
             if submission["status"] != "pending":
+
                 await query.message.reply_text(
                     "⚠️ Bu video allaqachon ko'rib chiqilgan."
                 )
+
                 conn.rollback()
+
                 return
 
             cur.execute(
@@ -753,19 +857,25 @@ async def button_handler(
             )
 
             try:
+
                 await context.bot.send_message(
+
                     chat_id=submission["user_id"],
+
                     text=(
                         "❌ Afsuski, yuborgan videongiz "
                         "rad etildi."
                     )
                 )
+
             except Exception as e:
+
                 logger.error(
                     f"Userga reject xabari yuborilmadi: {e}"
                 )
 
         except Exception as e:
+
             conn.rollback()
 
             logger.exception(
@@ -777,7 +887,9 @@ async def button_handler(
             )
 
         finally:
+
             cur.close()
+
             conn.close()
 
         return
@@ -793,9 +905,11 @@ async def button_handler(
         )
 
         conn = get_db()
+
         cur = conn.cursor()
 
         try:
+
             cur.execute(
                 """
                 SELECT *
@@ -809,17 +923,23 @@ async def button_handler(
             withdrawal = cur.fetchone()
 
             if not withdrawal:
+
                 await query.message.reply_text(
                     "❌ Pul yechish so'rovi topilmadi."
                 )
+
                 conn.rollback()
+
                 return
 
             if withdrawal["status"] != "pending":
+
                 await query.message.reply_text(
                     "⚠️ Bu so'rov allaqachon ko'rib chiqilgan."
                 )
+
                 conn.rollback()
+
                 return
 
             cur.execute(
@@ -858,21 +978,29 @@ async def button_handler(
             )
 
             try:
+
                 await context.bot.send_message(
+
                     chat_id=withdrawal["user_id"],
+
                     text=(
+
                         "✅ Pul yechish so'rovingiz "
                         "to'landi.\n\n"
+
                         f"💰 Summa: "
                         f"{withdrawal['amount']:,} so'm"
                     )
                 )
+
             except Exception as e:
+
                 logger.error(
                     f"Withdrawal paid xabari yuborilmadi: {e}"
                 )
 
         except Exception as e:
+
             conn.rollback()
 
             logger.exception(
@@ -884,7 +1012,9 @@ async def button_handler(
             )
 
         finally:
+
             cur.close()
+
             conn.close()
 
         return
@@ -900,9 +1030,11 @@ async def button_handler(
         )
 
         conn = get_db()
+
         cur = conn.cursor()
 
         try:
+
             cur.execute(
                 """
                 SELECT *
@@ -916,17 +1048,23 @@ async def button_handler(
             withdrawal = cur.fetchone()
 
             if not withdrawal:
+
                 await query.message.reply_text(
                     "❌ So'rov topilmadi."
                 )
+
                 conn.rollback()
+
                 return
 
             if withdrawal["status"] != "pending":
+
                 await query.message.reply_text(
                     "⚠️ Bu so'rov allaqachon ko'rib chiqilgan."
                 )
+
                 conn.rollback()
+
                 return
 
             cur.execute(
@@ -967,21 +1105,29 @@ async def button_handler(
             )
 
             try:
+
                 await context.bot.send_message(
+
                     chat_id=withdrawal["user_id"],
+
                     text=(
+
                         "❌ Pul yechish so'rovingiz "
                         "rad etildi.\n\n"
+
                         f"💰 {withdrawal['amount']:,} so'm "
                         "balansingizga qaytarildi."
                     )
                 )
+
             except Exception as e:
+
                 logger.error(
                     f"Withdrawal reject xabari yuborilmadi: {e}"
                 )
 
         except Exception as e:
+
             conn.rollback()
 
             logger.exception(
@@ -993,7 +1139,9 @@ async def button_handler(
             )
 
         finally:
+
             cur.close()
+
             conn.close()
 
         return
@@ -1009,9 +1157,11 @@ async def button_handler(
         )
 
         context.user_data["mode"] = "admin_reply"
+
         context.user_data["appeal_id"] = submission_id
 
         await query.message.reply_text(
+
             "💬 Foydalanuvchiga yubormoqchi "
             "bo'lgan javobingizni yozing:"
         )
@@ -1029,6 +1179,7 @@ async def button_handler(
         )
 
         conn = get_db()
+
         cur = conn.cursor()
 
         cur.execute(
@@ -1043,12 +1194,15 @@ async def button_handler(
         appeal = cur.fetchone()
 
         if not appeal:
+
             cur.close()
+
             conn.close()
 
             await query.message.reply_text(
                 "❌ Murojaat topilmadi."
             )
+
             return
 
         cur.execute(
@@ -1063,6 +1217,7 @@ async def button_handler(
         conn.commit()
 
         cur.close()
+
         conn.close()
 
         await query.message.edit_reply_markup(
@@ -1074,11 +1229,16 @@ async def button_handler(
         )
 
         try:
+
             await context.bot.send_message(
+
                 chat_id=appeal["user_id"],
+
                 text="ℹ️ Sizning murojaatingiz yopildi."
             )
+
         except Exception as e:
+
             logger.error(
                 f"Appeal close xabari yuborilmadi: {e}"
             )
@@ -1094,8 +1254,11 @@ async def handle_message(
     update: Update,
     context: ContextTypes.DEFAULT_TYPE
 ):
+
     user = update.effective_user
+
     user_id = user.id
+
     text = update.message.text
 
     add_or_update_user(user)
@@ -1119,6 +1282,7 @@ async def handle_message(
             return
 
         conn = get_db()
+
         cur = conn.cursor()
 
         cur.execute(
@@ -1134,8 +1298,11 @@ async def handle_message(
         appeal = cur.fetchone()
 
         if not appeal:
+
             conn.rollback()
+
             cur.close()
+
             conn.close()
 
             await update.message.reply_text(
@@ -1145,8 +1312,11 @@ async def handle_message(
             return
 
         if appeal["status"] != "pending":
+
             conn.rollback()
+
             cur.close()
+
             conn.close()
 
             await update.message.reply_text(
@@ -1171,23 +1341,36 @@ async def handle_message(
         conn.commit()
 
         cur.close()
+
         conn.close()
 
         try:
+
             await context.bot.send_message(
+
                 chat_id=appeal["user_id"],
+
                 text=(
                     "💬 Murojaatingizga javob:\n\n"
                     f"{text}"
                 )
             )
+
         except Exception as e:
+
             logger.error(
                 f"Appeal javobi yuborilmadi: {e}"
             )
 
-        context.user_data.pop("mode", None)
-        context.user_data.pop("appeal_id", None)
+        context.user_data.pop(
+            "mode",
+            None
+        )
+
+        context.user_data.pop(
+            "appeal_id",
+            None
+        )
 
         await update.message.reply_text(
             "✅ Javob foydalanuvchiga yuborildi."
@@ -1202,6 +1385,7 @@ async def handle_message(
     if mode == "appeal":
 
         conn = get_db()
+
         cur = conn.cursor()
 
         cur.execute(
@@ -1224,27 +1408,43 @@ async def handle_message(
         conn.commit()
 
         cur.close()
+
         conn.close()
 
         appeal_id = appeal["id"]
 
-        context.user_data.pop("mode", None)
+        context.user_data.pop(
+            "mode",
+            None
+        )
 
         admin_text = (
+
             "📝 Yangi murojaat!\n\n"
+
             f"👤 Ism: {user.first_name}\n"
+
             f"🆔 ID: {user_id}\n"
-            f"🔗 Username: @{user.username if user.username else 'yo‘q'}\n\n"
+
+            f"🔗 Username: "
+            f"@{user.username if user.username else 'yo‘q'}\n\n"
+
             f"💬 Murojaat:\n{text}"
         )
 
         await send_to_admins(
+
             context,
+
             admin_text,
-            reply_markup=appeal_menu(appeal_id)
+
+            reply_markup=appeal_menu(
+                appeal_id
+            )
         )
 
         await update.message.reply_text(
+
             "✅ Murojaatingiz qabul qilindi.\n\n"
             "Tez orada javob beriladi."
         )
@@ -1258,25 +1458,34 @@ async def handle_message(
     if mode == "withdraw_amount":
 
         try:
+
             amount = int(
                 text.replace(" ", "")
                 .replace(",", "")
             )
+
         except ValueError:
+
             await update.message.reply_text(
+
                 "❌ Summani faqat raqam bilan yozing.\n\n"
                 "Masalan: 50000"
             )
+
             return
 
         if amount < MIN_WITHDRAW:
+
             await update.message.reply_text(
+
                 f"❌ Minimal summa "
                 f"{MIN_WITHDRAW:,} so'm."
             )
+
             return
 
         conn = get_db()
+
         cur = conn.cursor()
 
         cur.execute(
@@ -1292,19 +1501,25 @@ async def handle_message(
         row = cur.fetchone()
 
         if not row or row["balance"] < amount:
+
             conn.rollback()
+
             cur.close()
+
             conn.close()
 
             await update.message.reply_text(
                 "❌ Balansingizda yetarli mablag' yo'q."
             )
+
             return
 
         context.user_data["withdraw_amount"] = amount
+
         context.user_data["mode"] = "withdraw_card"
 
         cur.close()
+
         conn.close()
 
         await update.message.reply_text(
@@ -1324,6 +1539,7 @@ async def handle_message(
         )
 
         if not amount:
+
             context.user_data.pop(
                 "mode",
                 None
@@ -1332,20 +1548,25 @@ async def handle_message(
             await update.message.reply_text(
                 "❌ Jarayon tugadi. Qaytadan urinib ko'ring."
             )
+
             return
 
         card = text.strip()
 
         if len(card) < 8:
+
             await update.message.reply_text(
                 "❌ Karta raqami noto'g'ri."
             )
+
             return
 
         conn = get_db()
+
         cur = conn.cursor()
 
         try:
+
             cur.execute(
                 """
                 SELECT balance
@@ -1359,6 +1580,7 @@ async def handle_message(
             user_row = cur.fetchone()
 
             if not user_row or user_row["balance"] < amount:
+
                 conn.rollback()
 
                 await update.message.reply_text(
@@ -1416,31 +1638,46 @@ async def handle_message(
             )
 
             admin_text = (
+
                 "💳 Yangi pul yechish so'rovi!\n\n"
+
                 f"👤 Ism: {user.first_name}\n"
+
                 f"🆔 ID: {user_id}\n"
-                f"🔗 Username: @{user.username if user.username else 'yo‘q'}\n\n"
+
+                f"🔗 Username: "
+                f"@{user.username if user.username else 'yo‘q'}\n\n"
+
                 f"💰 Summa: {amount:,} so'm\n"
+
                 f"💳 Karta: {card}"
             )
 
             await send_to_admins(
+
                 context,
+
                 admin_text,
+
                 reply_markup=withdrawal_menu(
                     withdrawal_id
                 )
             )
 
             await update.message.reply_text(
+
                 "✅ Pul yechish so'rovingiz yuborildi.\n\n"
+
                 f"💰 Summa: {amount:,} so'm\n"
+
                 f"💳 Karta: {card}\n\n"
+
                 "Admin tekshirganidan keyin "
                 "pul o'tkaziladi."
             )
 
         except Exception as e:
+
             conn.rollback()
 
             logger.exception(
@@ -1452,7 +1689,9 @@ async def handle_message(
             )
 
         finally:
+
             cur.close()
+
             conn.close()
 
         return
@@ -1466,6 +1705,7 @@ async def handle_video(
     update: Update,
     context: ContextTypes.DEFAULT_TYPE
 ):
+
     user = update.effective_user
 
     add_or_update_user(user)
@@ -1473,31 +1713,44 @@ async def handle_video(
     mode = context.user_data.get("mode")
 
     if mode != "video":
+
         await update.message.reply_text(
-            "❌ Avval '🎥 Video sotaman' bo'limini tanlang."
+
+            "❌ Avval "
+            "'🎥 Video sotaman' "
+            "bo'limini tanlang."
         )
+
         return
 
     file_id = None
+
     is_video = False
 
     if update.message.video:
+
         file_id = update.message.video.file_id
+
         is_video = True
 
     elif update.message.document:
+
         file_id = update.message.document.file_id
+
         is_video = False
 
     else:
+
         await update.message.reply_text(
             "❌ Video fayl yuboring."
         )
+
         return
 
     caption = update.message.caption or ""
 
     conn = get_db()
+
     cur = conn.cursor()
 
     cur.execute(
@@ -1522,18 +1775,25 @@ async def handle_video(
     conn.commit()
 
     cur.close()
+
     conn.close()
 
     submission_id = submission["id"]
 
     admin_caption = (
+
         "🎥 Yangi video!\n\n"
+
         f"👤 Ism: {user.first_name}\n"
+
         f"🆔 ID: {user.id}\n"
-        f"🔗 Username: @{user.username if user.username else 'yo‘q'}\n\n"
+
+        f"🔗 Username: "
+        f"@{user.username if user.username else 'yo‘q'}\n\n"
     )
 
     if caption:
+
         admin_caption += (
             f"📝 Izoh:\n{caption}\n\n"
         )
@@ -1543,18 +1803,24 @@ async def handle_video(
     )
 
     sent = await send_media_to_admins(
+
         context=context,
+
         file_id=file_id,
+
         caption=admin_caption,
+
         reply_markup=video_reward_menu(
             submission_id
         ),
+
         is_video=is_video
     )
 
     if not sent:
 
         conn = get_db()
+
         cur = conn.cursor()
 
         cur.execute(
@@ -1569,10 +1835,13 @@ async def handle_video(
         conn.commit()
 
         cur.close()
+
         conn.close()
 
         await update.message.reply_text(
-            "❌ Videoni adminlarga yuborishda xatolik yuz berdi."
+
+            "❌ Videoni adminlarga "
+            "yuborishda xatolik yuz berdi."
         )
 
         return
@@ -1583,7 +1852,9 @@ async def handle_video(
     )
 
     await update.message.reply_text(
+
         "✅ Videongiz qabul qilindi.\n\n"
+
         "Adminlar tekshirganidan keyin "
         "mukofot balansingizga qo'shiladi."
     )
@@ -1597,15 +1868,19 @@ async def users_command(
     update: Update,
     context: ContextTypes.DEFAULT_TYPE
 ):
+
     user_id = update.effective_user.id
 
     if not is_admin(user_id):
+
         await update.message.reply_text(
             "❌ Sizda admin huquqi yo'q."
         )
+
         return
 
     conn = get_db()
+
     cur = conn.cursor()
 
     cur.execute("""
@@ -1619,12 +1894,17 @@ async def users_command(
     row = cur.fetchone()
 
     cur.close()
+
     conn.close()
 
     await update.message.reply_text(
+
         "👥 STATISTIKA\n\n"
+
         f"👤 Foydalanuvchilar: {row['total']}\n"
+
         f"💰 Balanslar: {row['balance']:,} so'm\n"
+
         f"🔒 Rezerv: {row['reserved']:,} so'm"
     )
 
@@ -1637,12 +1917,15 @@ async def withdrawals_command(
     update: Update,
     context: ContextTypes.DEFAULT_TYPE
 ):
+
     user_id = update.effective_user.id
 
     if not is_admin(user_id):
+
         await update.message.reply_text(
             "❌ Sizda admin huquqi yo'q."
         )
+
         return
 
     await send_pending_withdrawals(
@@ -1659,7 +1942,9 @@ async def send_pending_withdrawals(
     message,
     context
 ):
+
     conn = get_db()
+
     cur = conn.cursor()
 
     cur.execute("""
@@ -1677,32 +1962,46 @@ async def send_pending_withdrawals(
     rows = cur.fetchall()
 
     cur.close()
+
     conn.close()
 
     if not rows:
+
         await message.reply_text(
+
             "✅ Hozircha kutilayotgan "
             "pul yechish so'rovlari yo'q."
         )
+
         return
 
     await message.reply_text(
+
         f"💳 Kutilayotgan so'rovlar: {len(rows)}"
     )
 
     for row in rows:
 
         text = (
+
             "💳 PUL YECHISH\n\n"
+
             f"👤 Ism: {row['first_name']}\n"
+
             f"🆔 ID: {row['user_id']}\n"
-            f"🔗 Username: @{row['username'] if row['username'] else 'yo‘q'}\n\n"
+
+            f"🔗 Username: "
+            f"@{row['username'] if row['username'] else 'yo‘q'}\n\n"
+
             f"💰 Summa: {row['amount']:,} so'm\n"
+
             f"💳 Karta: {row['card']}"
         )
 
         await message.reply_text(
+
             text,
+
             reply_markup=withdrawal_menu(
                 row["id"]
             )
@@ -1717,6 +2016,7 @@ async def error_handler(
     update: object,
     context: ContextTypes.DEFAULT_TYPE
 ):
+
     logger.exception(
         "Botda xatolik yuz berdi:",
         exc_info=context.error
@@ -1737,7 +2037,10 @@ def main():
         .build()
     )
 
+    # =====================================================
     # COMMANDS
+    # =====================================================
+
     application.add_handler(
         CommandHandler(
             "start",
@@ -1766,14 +2069,20 @@ def main():
         )
     )
 
+    # =====================================================
     # CALLBACK BUTTONS
+    # =====================================================
+
     application.add_handler(
         CallbackQueryHandler(
             button_handler
         )
     )
 
+    # =====================================================
     # VIDEO
+    # =====================================================
+
     application.add_handler(
         MessageHandler(
             filters.VIDEO | filters.Document.ALL,
@@ -1781,7 +2090,10 @@ def main():
         )
     )
 
+    # =====================================================
     # TEXT
+    # =====================================================
+
     application.add_handler(
         MessageHandler(
             filters.TEXT & ~filters.COMMAND,
@@ -1789,22 +2101,35 @@ def main():
         )
     )
 
+    # =====================================================
     # ERROR
+    # =====================================================
+
     application.add_error_handler(
         error_handler
     )
 
+    # =====================================================
+    # START LOG
+    # =====================================================
+
     print("====================================")
     print("Navoiyliklar.uz Bot ishga tushdi")
+    print("====================================")
     print("Adminlar:")
     print(" - 7267416938")
     print(" - 1058849364")
+    print(" - 6820475808")
     print("====================================")
 
     application.run_polling(
         allowed_updates=Update.ALL_TYPES
     )
 
+
+# =========================================================
+# RUN
+# =========================================================
 
 if __name__ == "__main__":
     main()
